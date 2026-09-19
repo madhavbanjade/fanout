@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: notify
+      POSTGRES_PASSWORD: dev_by_chance
+      POSTGRES_DB: notify_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:
+
+  # this files pull the postgres database and redis and start them by changing the status to up...
