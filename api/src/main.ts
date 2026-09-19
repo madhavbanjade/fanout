@@ -11,6 +11,7 @@ async function bootstrap() {
     origin: process.env.FRONTEND_URL ?? true,
     credentials: true,
   });
+  app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -20,7 +21,7 @@ async function bootstrap() {
   );
   const port = Number(process.env.PORT ?? 3000);
   await app.listen(port);
-  console.log(`API running at http://localhost:${port}`);
+  console.log(`API running at http://localhost:${port}/api/v1`);
   console.log('POST /auth/signup | POST /auth/login');
 }
 void bootstrap();
