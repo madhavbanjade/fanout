@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 
 const cookieName = 'accessToken';
 const isProduction = process.env.NODE_ENV === 'production';
@@ -19,7 +19,7 @@ export class AuthCookieService {
     response.clearCookie(cookieName);
   }
 
-  get(request: Request) {
+  get(request: { headers: { cookie?: string } }) {
     return request.headers.cookie
       ?.split(';')
       .map((cookie) => cookie.trim())
