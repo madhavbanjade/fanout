@@ -1,7 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+import { fetchAPI } from "@/src/utils/apiservice";
 
 type Notification = {
   id: string;
@@ -29,6 +31,7 @@ function StatusPill({ status }: { status: string }) {
 
 export default function NotificationSocketListener() {
   useNotificationSocket();
+  const queryClient = useQueryClient();
 
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ["notifications"],
@@ -36,14 +39,76 @@ export default function NotificationSocketListener() {
     initialData: [],
   });
 
-  if (notifications.length === 0) return null;
+  useEffect(() => {
+    const pendingNotifications = notifications.filter(
+      (notification) => notification.status === "PENDING",
+    );
+    if (pendingNotifications.length === 0) return;
+
+    async function refreshPendingStatuses() {
+      const results = await Promise.all(
+        pendingNotifications.map((notification) =>
+          fetchAPI<Notification>({
+            endPoint: "notifications",
+            id: notification.id,
+          }),
+        ),
+      );
+
+      queryClient.setQueryData<Notification[]>(["notifications"], (old = []) =>
+        old.map((notification) => {
+          const updated = results.find(
+            (result) => result.success && result.data.id === notification.id,
+          );
+          return updated?.success ? updated.data : notification;
+        }),
+      );
+    }
+
+    void refreshPendingStatuses();
+    const interval = window.setInterval(() => void refreshPendingStatuses(), 1000);
+    return () => window.clearInterval(interval);
+  }, [notifications, queryClient]);
+
+  async function createDemoNotification() {
+    const response = await fetchAPI<Notification, { type: string; payload: { message: string } }>({
+      endPoint: "notifications",
+      method: "POST",
+      data: {
+        type: "demo",
+        payload: { message: "Your queued notification is being delivered." },
+      },
+    });
+
+    if (!response.success) {
+      console.error("Could not create demo notification:", response.error);
+      return;
+    }
+
+    // The POST response arrives before the worker delivers the job. Put this
+    // PENDING record in the cache immediately; the socket event will replace it
+    // with DELIVERED once the worker has finished.
+    queryClient.setQueryData<Notification[]>(["notifications"], (old = []) => [
+      response.data,
+      ...old.filter((notification) => notification.id !== response.data.id),
+    ]);
+  }
 
   return (
-    <section
-      aria-label="Notifications"
-      className="fixed right-4 bottom-4 z-50 w-full max-w-sm space-y-2"
-    >
-      {notifications.map((notification) => {
+    <>
+      <button
+        type="button"
+        onClick={createDemoNotification}
+        className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+      >
+        Create demo notification
+      </button>
+
+      <section
+        aria-label="Notifications"
+        className="fixed right-4 bottom-4 z-50 w-full max-w-sm space-y-2"
+      >
+        {notifications.map((notification) => {
         const status = notification.status ?? "PENDING";
         const message =
           notification.message ?? notification.payload?.message ?? "New notification";
@@ -57,7 +122,8 @@ export default function NotificationSocketListener() {
             <StatusPill status={status} />
           </article>
         );
-      })}
-    </section>
+        })}
+      </section>
+    </>
   );
 }

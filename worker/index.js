@@ -23,15 +23,19 @@ const worker = new Worker(
       console.log(`Skipping ${notificationId} — already delivered or missing`);
       return;
     }
+    console.log(`Processing notification ${notificationId}`);
     await new Promise((resolve) => setTimeout(resolve, 4000));
-    await publisher.publish(
-      `user:${notification.userId}:notifications`,
-      JSON.stringify(notification),
-    );
-    await prisma.notification.update({
+    // Persist the terminal state first, then publish that same state to the UI.
+    // Publishing `notification` here would send the stale PENDING object read
+    // above, leaving the browser with no way to show the status transition.
+    const deliveredNotification = await prisma.notification.update({
       where: { id: notificationId },
       data: { status: "DELIVERED" },
     });
+    await publisher.publish(
+      `user:${notification.userId}:notifications`,
+      JSON.stringify(deliveredNotification),
+    );
     console.log(
       `Delivered notification ${notificationId} to user ${notification.userId}`,
     );

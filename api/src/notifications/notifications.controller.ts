@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { NotificationsGateway } from '../common/guards/notifications.gateway';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import type { AuthRequest } from '../common/types/auth-request.type';
@@ -19,6 +19,15 @@ export class NotificationsController {
     @Body() dto: CreateNotificationDto,
   ) {
     return this.notifications.createNotification(request.user.sub, dto);
+  }
+
+  @Get(':notificationId')
+  @UseGuards(JwtAuthGuard)
+  getOne(
+    @Req() request: AuthRequest,
+    @Param('notificationId') notificationId: string,
+  ) {
+    return this.notifications.getNotification(request.user.sub, notificationId);
   }
 
   

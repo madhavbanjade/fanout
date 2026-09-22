@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:3334";
+
 type NotificationEvent = {
   id: string;
   message?: string;
@@ -14,7 +16,7 @@ export function useNotificationSocket() {
   const queryClient = useQueryClient();
   useEffect(() => {
     //Opens the actual WebSocket connection, sending the JWT in the handshake — this is what your gateway's handleConnection reads on the backend
-    const socket = io("http://localhost:3333", { withCredentials: true });
+    const socket = io(SOCKET_URL, { withCredentials: true });
     //	Fires once the connection is actually established
     socket.on("connect", () => console.log("socket connected"));
     //	The actual live-update listener

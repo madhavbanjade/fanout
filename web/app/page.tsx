@@ -10,9 +10,10 @@ export default async function Home() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50">
+      <h1 className="text-2xl font-bold text-slate-900">Fanout delivery demo</h1>
+      <p className="text-sm text-slate-600">Create a notification and watch it move from PENDING to DELIVERED.</p>
       <NotificationSocketListener />
-      Welcome to Fanout
     </main>
   );
 }
