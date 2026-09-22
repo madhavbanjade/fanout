@@ -1,5 +1,12 @@
+// @ts-check
 // api create the notifications and worker consumes it.
 
+import "dotenv/config";
+import prismaPackage from "@prisma/client";
+import { Worker } from "bullmq";
+import IORedis from "ioredis";
+
+const { PrismaClient } = prismaPackage;
 const prisma = new PrismaClient();
 const connection = new IORedis(process.env.REDIS_URL, {
   maxRetriesPerRequest: null,
@@ -16,6 +23,7 @@ const worker = new Worker(
       console.log(`Skipping ${notificationId} — already delivered or missing`);
       return;
     }
+    await new Promise((resolve) => setTimeout(resolve, 4000));
     await publisher.publish(
       `user:${notification.userId}:notifications`,
       JSON.stringify(notification),

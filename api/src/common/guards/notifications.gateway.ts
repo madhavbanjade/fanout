@@ -5,6 +5,7 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { Logger } from '@nestjs/common';
 import { AuthCookieService } from '../cookies/auth-cookie.service';
+import IORedis from 'ioredis';
 
 @WebSocketGateway({
   cors: {
@@ -46,4 +47,17 @@ this.logger.log(`Client disconnected: ${client.data?.userId ?? 'unknown'}`);
  sendToUser(userId: string, payload: any) {
 this.server.to(`user:${userId}`).emit('notification:new', payload);
  }
+
+ //subscribe to redis from the api(single-instances, temporary)
+ async onModuleInit() {
+const redisUrl = process.env.REDIS_URL;
+if (!redisUrl) throw new Error('REDIS_URL is required');
+const sub = new IORedis(redisUrl);
+await sub.psubscribe('user:*:notifications');
+ sub.on('pmessage', (_pattern, channel, message) => {
+const userId = channel.split(':')[1];
+this.server.to(`user:${userId}`).emit('notification:new', JSON.parse(message));
+ })
+
+}
 }
