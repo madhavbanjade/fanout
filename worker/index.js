@@ -11,7 +11,6 @@ const prisma = new PrismaClient();
 const connection = new IORedis(process.env.REDIS_URL, {
   maxRetriesPerRequest: null,
 });
-const publisher = new IORedis(process.env.REDIS_URL);
 const worker = new Worker(
   "notifications",
   async (job) => {
@@ -25,17 +24,10 @@ const worker = new Worker(
     }
     console.log(`Processing notification ${notificationId}`);
     await new Promise((resolve) => setTimeout(resolve, 4000));
-    // Persist the terminal state first, then publish that same state to the UI.
-    // Publishing `notification` here would send the stale PENDING object read
-    // above, leaving the browser with no way to show the status transition.
-    const deliveredNotification = await prisma.notification.update({
+    await prisma.notification.update({
       where: { id: notificationId },
       data: { status: "DELIVERED" },
     });
-    await publisher.publish(
-      `user:${notification.userId}:notifications`,
-      JSON.stringify(deliveredNotification),
-    );
     console.log(
       `Delivered notification ${notificationId} to user ${notification.userId}`,
     );

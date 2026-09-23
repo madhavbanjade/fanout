@@ -14,11 +14,20 @@ export class NotificationsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(
+  async create(
     @Req() request: AuthRequest,
     @Body() dto: CreateNotificationDto,
   ) {
-    return this.notifications.createNotification(request.user.sub, dto);
+    const notification = await this.notifications.createNotification(
+      request.user.sub,
+      dto,
+    );
+
+    // This may run on any API instance. The Redis Socket.IO adapter fans the
+    // room emission out to sockets connected to every other instance.
+    this.notificationsGateway.sendToUser(request.user.sub, notification);
+
+    return notification;
   }
 
   @Get(':notificationId')

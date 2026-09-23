@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:3334";
+export const SOCKET_URL = "http://localhost:3334";
 
 type NotificationEvent = {
   id: string;

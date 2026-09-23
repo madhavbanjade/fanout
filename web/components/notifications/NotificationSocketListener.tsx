@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+import { SOCKET_URL, useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { fetchAPI } from "@/src/utils/apiservice";
 
 type Notification = {
@@ -32,6 +33,23 @@ function StatusPill({ status }: { status: string }) {
 export default function NotificationSocketListener() {
   useNotificationSocket();
   const queryClient = useQueryClient();
+  const [instancePort, setInstancePort] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadInstance() {
+      try {
+        const response = await fetch(new URL("/api/v1/health", SOCKET_URL));
+        if (!response.ok) return;
+
+        const health = (await response.json()) as { instance?: string | number };
+        if (health.instance !== undefined) setInstancePort(String(health.instance));
+      } catch {
+        // The demo remains usable if the optional instance label cannot load.
+      }
+    }
+
+    void loadInstance();
+  }, []);
 
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ["notifications"],
@@ -96,6 +114,12 @@ export default function NotificationSocketListener() {
 
   return (
     <>
+      {instancePort && (
+        <div className="fixed bottom-2 left-2 text-xs text-gray-400">
+          connected via instance :{instancePort}
+        </div>
+      )}
+
       <button
         type="button"
         onClick={createDemoNotification}
