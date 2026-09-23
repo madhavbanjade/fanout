@@ -4,7 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { RedisIoAdapter } from './common/redis/redis-io.adapter';
-
+//  wdj
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const redisIoAdapter = new RedisIoAdapter(app);
