@@ -4,11 +4,13 @@ import { NotificationsService } from './notifications.service';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsGateway } from '../common/guards/notifications.gateway';
 import { CommonModule } from '../common/common.module';
+import { UsersModule } from '../users/users.module';
 import { NotificationQueueService } from './notifications-queue.service';
 
 @Module({
   imports: [
     CommonModule,
+    UsersModule,
     JwtModule.registerAsync({
       useFactory: () => {
         const secret = process.env.JWT_SECRET;

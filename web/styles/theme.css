@@ -1,0 +1,387 @@
+
+
+:root {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+
+/* ─── FONT SIZES ───────────────────────────────────────────────────────────── */
+
+:root {
+  --text-overline:   0.625rem;    /*  10px — badge labels, "Required" chip      */
+  --text-chart-axis: 0.6875rem;   /*  11px — SVG chart axis labels              */
+  --text-xs:         0.75rem;     /*  12px — timestamps, captions, table heads  */
+  --text-sm:         0.875rem;    /*  14px — body copy, inputs, buttons, rows   */
+  --text-base:       1rem;        /*  16px — logo wordmark                      */
+  --text-xl:         1.25rem;     /*  20px — login panel stat numbers           */
+  --text-2xl:        1.5rem;      /*  24px — page h1 (Dashboard, Settings)      */
+  --text-4xl:        2.25rem;     /*  36px — login/signup panel headline        */
+}
+
+
+/* ─── FONT WEIGHTS ─────────────────────────────────────────────────────────── */
+
+:root {
+  --weight-regular:  400;   /* body text, muted labels, inactive nav          */
+  --weight-medium:   500;   /* field labels, active nav, card headings        */
+  --weight-semibold: 600;   /* page h1, logo, panel headline, stat values     */
+}
+
+
+/* ─── COLOR PALETTE — SURFACES & BACKGROUNDS ───────────────────────────────── */
+
+:root {
+  --color-page-bg:       #F0F2F5;   /* app body                                */
+  --color-card-bg:       #ffffff;   /* card / panel surfaces                   */
+  --color-nav-bg:        #0D111A;   /* top navigation bar                      */
+  --color-panel-dark:    #0D111A;   /* login/signup left illustration panel    */
+  --color-muted-bg:      #E5E8EE;   /* sidebar active, row hover               */
+  --color-input-bg:      #ffffff;   /* form inputs on light background         */
+}
+
+
+/* ─── COLOR PALETTE — TEXT ─────────────────────────────────────────────────── */
+
+:root {
+  --color-text-primary:    #0D111A;                  /* headings, body copy     */
+  --color-text-muted:      #6B7280;                  /* labels, captions        */
+  --color-text-white:      #ffffff;                  /* on dark / primary btns  */
+  --color-text-on-dark-40: rgba(255, 255, 255, 0.4); /* panel micro labels      */
+  --color-text-on-dark-50: rgba(255, 255, 255, 0.5); /* panel subtitle          */
+  --color-text-on-dark-70: rgba(255, 255, 255, 0.7); /* panel feature list      */
+  --color-text-on-dark-85: rgba(255, 255, 255, 0.85);
+}
+
+
+/* ─── COLOR PALETTE — BRAND ────────────────────────────────────────────────── */
+
+:root {
+  --color-primary:       #2B7FE0;   /* CTAs, active states, links              */
+  --color-primary-hover: #1a5bb5;   /* hover / gradient dark stop              */
+  --color-primary-light: #64A8EE;   /* panel headline accent span              */
+  --color-primary-fg:    #ffffff;   /* text on primary buttons                 */
+  --color-primary-10:    rgba(43, 127, 224, 0.10);  /* unread notif row tint   */
+  --color-primary-12:    rgba(43, 127, 224, 0.12);  /* input focus ring        */
+  --color-primary-08:    rgba(43, 127, 224, 0.08);  /* segment chip / channel  */
+  --color-primary-18:    rgba(43, 127, 224, 0.18);  /* stat icon badge bg      */
+}
+
+
+/* ─── COLOR PALETTE — BORDERS ──────────────────────────────────────────────── */
+
+:root {
+  --color-border:          #DDE1E8;                   /* card / input borders   */
+  --color-border-dark:     rgba(255, 255, 255, 0.08); /* borders on dark panels */
+  --color-border-dark-10:  rgba(255, 255, 255, 0.1);  /* quiet-hours divider    */
+  --color-border-nav:      rgba(255, 255, 255, 0.07); /* nav bottom hairline    */
+}
+
+
+/* ─── COLOR PALETTE — SEMANTIC STATUS ─────────────────────────────────────── */
+
+:root {
+  /* Success — Delivered badge, chart delivered line, Strong password */
+  --color-success:        #0FAD74;
+  --color-success-bg:     rgba(15, 173, 116, 0.10);
+  --color-success-chart:  rgba(15, 173, 116, 0.22); /* chart area gradient     */
+
+  /* Warning — Pending badge, delayed icon, Fair password */
+  --color-warning:        #E8930A;
+  --color-warning-bg:     rgba(232, 147, 10, 0.10);
+  --color-warning-badge:  rgba(232, 147, 10, 0.12); /* "Required" chip         */
+
+  /* Danger — Failed badge, security section, Weak password, unread dot */
+  --color-danger:         #E03A3A;
+  --color-danger-bg:      rgba(224, 58, 58, 0.10);
+}
+
+
+/* ─── COLOR PALETTE — NOTIFICATION TYPE AVATARS ───────────────────────────── */
+
+:root {
+  --color-notif-mention: #2B7FE0;   /* blue  — @mention                        */
+  --color-notif-order:   #0FAD74;   /* green — order update                    */
+  --color-notif-task:    #E8930A;   /* amber — task assigned                   */
+  --color-notif-system:  #E03A3A;   /* red   — system / security alert         */
+}
+
+
+/* ─── COLOR PALETTE — SETTINGS SECTION DOTS ───────────────────────────────── */
+
+:root {
+  --color-section-activity: #2B7FE0;   /* Activity section dot                 */
+  --color-section-orders:   #0FAD74;   /* Orders section dot                   */
+  --color-section-system:   #E03A3A;   /* System section dot                   */
+  --color-section-quiet:    #9B59B6;   /* Quiet hours section dot              */
+}
+
+
+/* ─── COLOR PALETTE — PASSWORD STRENGTH ───────────────────────────────────── */
+
+:root {
+  --color-strength-1: #E03A3A;   /* Weak   */
+  --color-strength-2: #E8930A;   /* Fair   */
+  --color-strength-3: #2B7FE0;   /* Good   */
+  --color-strength-4: #0FAD74;   /* Strong */
+}
+
+
+/* ─── COLOR PALETTE — GLASS / DARK PANEL ──────────────────────────────────── */
+
+:root {
+  --color-glass-fill:   rgba(255, 255, 255, 0.05);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-deep:   rgba(255, 255, 255, 0.04);  /* social proof card       */
+}
+
+
+/* ─── COLOR PALETTE — OAUTH BRAND (icon fills only) ───────────────────────── */
+
+:root {
+  --color-google-blue:   #4285F4;
+  --color-google-green:  #34A853;
+  --color-google-yellow: #FBBC05;
+  --color-google-red:    #EA4335;
+}
+
+
+/* ─── BORDER RADIUS ────────────────────────────────────────────────────────── */
+
+:root {
+  --radius-sm:   6px;       /* checkbox, small chips                           */
+  --radius-md:   8px;       /* inputs, buttons, tooltips                       */
+  --radius-lg:   12px;      /* cards, panels, notification rows                */
+  --radius-full: 9999px;    /* avatar circles, badge dots, toggle pill         */
+}
+
+
+/* ─── SPACING ──────────────────────────────────────────────────────────────── */
+
+:root {
+  --space-0-5:  0.125rem;   /*  2px  */
+  --space-1:    0.25rem;    /*  4px  */
+  --space-1-5:  0.375rem;   /*  6px  */
+  --space-2:    0.5rem;     /*  8px  */
+  --space-2-5:  0.625rem;   /* 10px  */
+  --space-3:    0.75rem;    /* 12px  */
+  --space-3-5:  0.875rem;   /* 14px  */
+  --space-4:    1rem;       /* 16px  */
+  --space-5:    1.25rem;    /* 20px  */
+  --space-6:    1.5rem;     /* 24px  */
+  --space-8:    2rem;       /* 32px  */
+  --space-10:   2.5rem;     /* 40px  */
+  --space-12:   3rem;       /* 48px  */
+}
+
+
+/* ─── SHADOWS ──────────────────────────────────────────────────────────────── */
+
+:root {
+  --shadow-dropdown:    0 16px 48px rgba(0, 0, 0, 0.14);  /* notif dropdown    */
+  --shadow-toast:       0 12px 40px rgba(0, 0, 0, 0.14);  /* live toast card   */
+  --shadow-tooltip:     0  4px 16px rgba(0, 0, 0, 0.10);  /* chart tooltip     */
+  --shadow-preview:     0  8px 24px rgba(0, 0, 0, 0.08);  /* admin preview     */
+  --shadow-slide-over: -8px 0  32px rgba(0, 0, 0, 0.08);  /* delivery detail   */
+  --shadow-toggle:      0  1px  3px rgba(0, 0, 0, 0.20);  /* toggle thumb      */
+}
+
+
+/* ─── FOCUS RING ───────────────────────────────────────────────────────────── */
+
+:root {
+  --focus-ring: 0 0 0 3px rgba(43, 127, 224, 0.12);  /* all input :focus      */
+}
+
+
+/* ─── ANIMATIONS ───────────────────────────────────────────────────────────── */
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+:root {
+  --anim-slide-in-right: slideInRight 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  --anim-fade-up:        fadeUp       0.2s  ease;
+  --anim-spin:           spin         1s    linear infinite;
+}
+
+
+/* ─── GRADIENTS ────────────────────────────────────────────────────────────── */
+
+:root {
+  --gradient-avatar:     linear-gradient(135deg, #2B7FE0, #1a5bb5);
+  --gradient-blob-blue:  radial-gradient(circle, rgba(43, 127, 224, 0.35) 0%, transparent 70%);
+  --gradient-blob-green: radial-gradient(circle, rgba(15, 173, 116, 0.20) 0%, transparent 70%);
+  --gradient-chart-sent:
+    linear-gradient(to bottom, rgba(43, 127, 224, 0.18) 0%, rgba(43, 127, 224, 0) 100%);
+  --gradient-chart-delivered:
+    linear-gradient(to bottom, rgba(15, 173, 116, 0.22) 0%, rgba(15, 173, 116, 0) 100%);
+}
+
+
+/* ─── COMPONENT UTILITY CLASSES ────────────────────────────────────────────── */
+/* Repeated inline style patterns extracted into reusable classes.             */
+
+.card {
+  background:   var(--color-card-bg);
+  border:       1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.input {
+  background:    var(--color-input-bg);
+  border:        1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color:         var(--color-text-primary);
+  font-family:   var(--font-sans);
+  font-size:     var(--text-sm);
+  padding:       var(--space-2-5) var(--space-3-5);
+  outline:       none;
+  transition:    border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow:   var(--focus-ring);
+}
+
+.btn-primary {
+  background:    var(--color-primary);
+  color:         var(--color-primary-fg);
+  border-radius: var(--radius-md);
+  font-family:   var(--font-sans);
+  font-size:     var(--text-sm);
+  font-weight:   var(--weight-medium);
+  padding:       var(--space-2-5) var(--space-4);
+  border:        none;
+  cursor:        pointer;
+  transition:    opacity 0.15s ease;
+}
+
+.btn-primary:hover  { opacity: 0.9; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-outline {
+  background:    transparent;
+  border:        1px solid var(--color-border);
+  color:         var(--color-text-primary);
+  border-radius: var(--radius-md);
+  font-family:   var(--font-sans);
+  font-size:     var(--text-sm);
+  font-weight:   var(--weight-medium);
+  padding:       var(--space-2-5) var(--space-4);
+  cursor:        pointer;
+  transition:    border-color 0.15s ease;
+}
+
+.btn-outline:hover { border-color: var(--color-primary); }
+
+.text-muted {
+  color:       var(--color-text-muted);
+  font-size:   var(--text-sm);
+}
+
+.text-link {
+  color:       var(--color-primary);
+  font-weight: var(--weight-medium);
+  cursor:      pointer;
+}
+
+.mono-data {
+  font-family: var(--font-mono);
+  font-size:   var(--text-xs);
+  color:       var(--color-text-muted);
+}
+
+.nav-item-active {
+  background:  var(--color-muted-bg);
+  color:       var(--color-text-primary);
+  font-weight: var(--weight-medium);
+}
+
+.nav-item-inactive {
+  background:  transparent;
+  color:       var(--color-text-muted);
+  font-weight: var(--weight-regular);
+}
+
+.status-badge {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           var(--space-1-5);
+  padding:       0.25rem var(--space-2-5);
+  border-radius: var(--radius-full);
+  font-size:     var(--text-xs);
+  font-weight:   var(--weight-medium);
+}
+
+.status-delivered { background: var(--color-success-bg); color: var(--color-success); }
+.status-pending   { background: var(--color-warning-bg); color: var(--color-warning); }
+.status-failed    { background: var(--color-danger-bg);  color: var(--color-danger);  }
+
+.toggle {
+  position:      relative;
+  width:         2.5rem;
+  height:        1.375rem;
+  border-radius: var(--radius-full);
+  border:        none;
+  cursor:        pointer;
+  transition:    background 0.2s ease;
+  flex-shrink:   0;
+}
+
+.toggle[aria-checked="true"]  { background: var(--color-primary); }
+.toggle[aria-checked="false"] { background: var(--color-border);  }
+.toggle:disabled               { opacity: 0.65; cursor: not-allowed; }
+
+.toggle::after {
+  content:       '';
+  position:      absolute;
+  top:           3px;
+  left:          3px;
+  width:         1rem;
+  height:        1rem;
+  background:    #fff;
+  border-radius: var(--radius-full);
+  box-shadow:    var(--shadow-toggle);
+  transition:    transform 0.2s ease;
+}
+
+.toggle[aria-checked="true"]::after {
+  transform: translateX(18px);
+}
+
+.glass-card {
+  background:     var(--color-glass-fill);
+  border:         1px solid var(--color-glass-border);
+  border-radius:  var(--radius-lg);
+  backdrop-filter: blur(8px);
+}
+
+.slide-in-right { animation: var(--anim-slide-in-right); }
+.fade-up        { animation: var(--anim-fade-up); }
+
+.section-label {
+  font-family:    var(--font-sans);
+  font-size:      var(--text-xs);
+  font-weight:    var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color:          var(--color-text-muted);
+}
+
+.overline-label {
+  font-family:    var(--font-mono);
+  font-size:      var(--text-xs);
+  font-weight:    var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color:          var(--color-text-muted);
+}

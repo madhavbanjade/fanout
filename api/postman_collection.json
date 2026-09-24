@@ -1,0 +1,169 @@
+{
+  "info": {
+    "name": "Notifyr API",
+    "description": "Fanout notification delivery platform. All auth is cookie-based (httpOnly accessToken + adminAccess cookies) — enable Postman's cookie jar / use a single request tab so cookies persist between calls in this collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3334/api/v1", "description": "Direct single-instance dev server. Switch to http://localhost:8080/api/v1 when running the full docker-compose + nginx load-balanced setup." }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Alex Johnson\",\n  \"email\": \"alex@example.com\",\n  \"password\": \"testpass123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/signup", "host": ["{{baseUrl}}"], "path": ["auth", "signup"] }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"alex@example.com\",\n  \"password\": \"testpass123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Sets the accessToken cookie. On this user's very first login only, the response body also includes a one-time `adminPin` — save it, it cannot be retrieved again."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Verify Admin PIN",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"pin\": \"1234\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/admin/verify-pin", "host": ["{{baseUrl}}"], "path": ["auth", "admin", "verify-pin"] },
+            "description": "Checks the 4-digit PIN against this user's own PIN (issued at their first login). On success sets a 15-minute adminAccess cookie."
+          }
+        },
+        {
+          "name": "Verify Admin Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"password\": \"testpass123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/admin/verify-password", "host": ["{{baseUrl}}"], "path": ["auth", "admin", "verify-password"] },
+            "description": "Alternative unlock path using the account password instead of the PIN."
+          }
+        },
+        {
+          "name": "Admin Status",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/admin/status", "host": ["{{baseUrl}}"], "path": ["auth", "admin", "status"] }
+          }
+        },
+        {
+          "name": "Lock Admin",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/auth/admin/lock", "host": ["{{baseUrl}}"], "path": ["auth", "admin", "lock"] },
+            "description": "Clears the adminAccess cookie, re-locking the admin panel without logging the user out."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List registered users (admin only)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] },
+            "description": "Requires an unlocked admin panel (Verify Admin PIN/Password first) — feeds the recipient picker."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Create (for self)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"type\": \"demo\",\n  \"payload\": { \"message\": \"Your queued notification is being delivered.\" }\n}" },
+            "url": { "raw": "{{baseUrl}}/notifications", "host": ["{{baseUrl}}"], "path": ["notifications"] }
+          }
+        },
+        {
+          "name": "Get One",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/notifications/:notificationId", "host": ["{{baseUrl}}"], "path": ["notifications", ":notificationId"] }
+          }
+        },
+        {
+          "name": "Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/notifications/stats", "host": ["{{baseUrl}}"], "path": ["notifications", "stats"] },
+            "description": "Today's sent/delivered/failed counts and average delivery latency, each with a % change vs yesterday."
+          }
+        },
+        {
+          "name": "Delivery Volume (7 days)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/volume?days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "volume"],
+              "query": [{ "key": "days", "value": "7" }]
+            }
+          }
+        },
+        {
+          "name": "Recent Deliveries",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/recent?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "recent"],
+              "query": [{ "key": "limit", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "Admin Send (to any user)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"targetUserId\": \"<another-user-id>\",\n  \"type\": \"mention\",\n  \"payload\": { \"message\": \"Hello from the admin panel\" }\n}" },
+            "url": { "raw": "{{baseUrl}}/notifications/admin/send", "host": ["{{baseUrl}}"], "path": ["notifications", "admin", "send"] },
+            "description": "Requires an unlocked admin panel. Sends a notification to any registered user, not just the caller."
+          }
+        },
+        {
+          "name": "Test Dead Letter",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/notifications/test-dead-letter", "host": ["{{baseUrl}}"], "path": ["notifications", "test-dead-letter"] },
+            "description": "Creates a notification for a test user the worker is hardcoded to fail delivering, exercising BullMQ retries -> DEAD_LETTER."
+          }
+        }
+      ]
+    }
+  ]
+}
