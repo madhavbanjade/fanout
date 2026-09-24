@@ -19,7 +19,7 @@ model User {
  email String @unique
  name String
  passwordHash String
- adminPinHash String?
+ role String @default("EMPLOYEE")
  createdAt DateTime @default(now())
  notifications Notification[] @relation("ReceivedNotifications")
  sentNotifications Notification[] @relation("SentNotifications")
@@ -31,13 +31,12 @@ model NotificationPreference {
  userId String @unique
  user User @relation(fields: [userId], references: [id])
  mentions Boolean @default(true)
- comments Boolean @default(true)
- newFollowers Boolean @default(false)
- orderShipped Boolean @default(true)
- orderDelivered Boolean @default(true)
- orderDelayed Boolean @default(true)
+ taskAssigned Boolean @default(true)
+ taskUpdates Boolean @default(true)
+ leaveUpdates Boolean @default(true)
+ meetingUpdates Boolean @default(true)
+ announcements Boolean @default(true)
  systemSecurity Boolean @default(true)
- systemUpdates Boolean @default(true)
  quietHoursEnabled Boolean @default(false)
  updatedAt DateTime @updatedAt
 }

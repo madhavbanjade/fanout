@@ -15,7 +15,6 @@ import {
   PersonIcon,
   RefreshIcon,
   ShieldIcon,
-  TruckIcon,
 } from "./icons";
 
 const SIDEBAR_ITEMS: SectionNavItem[] = [
@@ -28,13 +27,12 @@ const SIDEBAR_ITEMS: SectionNavItem[] = [
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {
   mentions: true,
-  comments: true,
-  newFollowers: false,
-  orderShipped: true,
-  orderDelivered: true,
-  orderDelayed: true,
+  taskAssigned: true,
+  taskUpdates: true,
+  leaveUpdates: true,
+  meetingUpdates: true,
+  announcements: true,
   systemSecurity: true,
-  systemUpdates: true,
   quietHoursEnabled: false,
 };
 
@@ -108,57 +106,57 @@ export default function SettingsView({ initialPreferences }: { initialPreference
                   checked={preferences.mentions}
                   onChange={(value) => updatePreference("mentions", value)}
                 />
-                <ToggleRow
-                  icon={<CommentIcon />}
-                  iconBg="var(--color-primary-08)"
-                  iconColor="var(--color-primary)"
-                  title="Comments"
-                  description="Replies and new comments on content you follow"
-                  checked={preferences.comments}
-                  onChange={(value) => updatePreference("comments", value)}
-                />
-                <ToggleRow
-                  icon={<PersonIcon />}
-                  iconBg="var(--color-primary-08)"
-                  iconColor="var(--color-primary)"
-                  title="New followers"
-                  description="When someone starts following your profile"
-                  checked={preferences.newFollowers}
-                  onChange={(value) => updatePreference("newFollowers", value)}
-                />
               </SectionCard>
 
-              <SectionCard dotColor="var(--color-section-orders)" label="Orders">
+              <SectionCard dotColor="var(--color-section-orders)" label="Tasks & meetings">
                 <ToggleRow
-                  icon={<TruckIcon />}
+                  icon={<ClockIcon />}
                   iconBg="var(--color-success-bg)"
                   iconColor="var(--color-success)"
-                  title="Shipped"
-                  description="When an order leaves the warehouse and tracking begins"
-                  checked={preferences.orderShipped}
-                  onChange={(value) => updatePreference("orderShipped", value)}
+                  title="Task assigned"
+                  description="When a task is assigned to you"
+                  checked={preferences.taskAssigned}
+                  onChange={(value) => updatePreference("taskAssigned", value)}
                 />
                 <ToggleRow
                   icon={<PackageIcon />}
                   iconBg="var(--color-success-bg)"
                   iconColor="var(--color-success)"
-                  title="Delivered"
-                  description="Confirmed delivery to the destination address"
-                  checked={preferences.orderDelivered}
-                  onChange={(value) => updatePreference("orderDelivered", value)}
+                  title="Task updates"
+                  description="Completed, overdue, or updated tasks"
+                  checked={preferences.taskUpdates}
+                  onChange={(value) => updatePreference("taskUpdates", value)}
                 />
                 <ToggleRow
-                  icon={<ClockIcon />}
-                  iconBg="var(--color-warning-bg)"
-                  iconColor="var(--color-warning)"
-                  title="Delayed"
-                  description="When a carrier reports a delay or delivery exception"
-                  checked={preferences.orderDelayed}
-                  onChange={(value) => updatePreference("orderDelayed", value)}
+                  icon={<CommentIcon />}
+                  iconBg="var(--color-success-bg)"
+                  iconColor="var(--color-success)"
+                  title="Meetings"
+                  description="Scheduled, rescheduled, or cancelled meetings"
+                  checked={preferences.meetingUpdates}
+                  onChange={(value) => updatePreference("meetingUpdates", value)}
+                />
+                <ToggleRow
+                  icon={<PersonIcon />}
+                  iconBg="var(--color-success-bg)"
+                  iconColor="var(--color-success)"
+                  title="Leave requests & updates"
+                  description="Leave requested, approved, or rejected"
+                  checked={preferences.leaveUpdates}
+                  onChange={(value) => updatePreference("leaveUpdates", value)}
                 />
               </SectionCard>
 
-              <SectionCard dotColor="var(--color-section-system)" label="System">
+              <SectionCard dotColor="var(--color-section-system)" label="Company">
+                <ToggleRow
+                  icon={<RefreshIcon />}
+                  iconBg="var(--color-danger-bg)"
+                  iconColor="var(--color-danger)"
+                  title="Announcements"
+                  description="General company-wide announcements from the admin"
+                  checked={preferences.announcements}
+                  onChange={(value) => updatePreference("announcements", value)}
+                />
                 <ToggleRow
                   icon={<ShieldIcon />}
                   iconBg="var(--color-danger-bg)"
@@ -170,15 +168,9 @@ export default function SettingsView({ initialPreferences }: { initialPreference
                   disabled
                   required
                 />
-                <ToggleRow
-                  icon={<RefreshIcon />}
-                  iconBg="var(--color-danger-bg)"
-                  iconColor="var(--color-danger)"
-                  title="Product updates"
-                  description="Occasional announcements about new features"
-                  checked={preferences.systemUpdates}
-                  onChange={(value) => updatePreference("systemUpdates", value)}
-                />
+                <p className="text-muted px-5 py-3" style={{ fontSize: "var(--text-xs)" }}>
+                  Warning letters, termination notices, and resignation confirmations are always delivered and can&apos;t be muted.
+                </p>
               </SectionCard>
 
               <SectionCard dotColor="var(--color-section-quiet)" label="Quiet hours">

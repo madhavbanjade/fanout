@@ -1,11 +1,11 @@
 {
   "info": {
     "name": "Notifyr API",
-    "description": "Fanout notification delivery platform. All auth is cookie-based (httpOnly accessToken + adminAccess cookies) — enable Postman's cookie jar / use a single request tab so cookies persist between calls in this collection.",
+    "description": "Fanout notification delivery platform. All auth is cookie-based (httpOnly accessToken cookie) — enable Postman's cookie jar / use a single request tab so cookies persist between calls in this collection. There is exactly one admin account (the first user ever registered); every other registered user is an employee who can message any other registered user except for company-wide types, which are admin-only.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3334/api/v1", "description": "Direct single-instance dev server. Switch to http://localhost:8080/api/v1 when running the full docker-compose + nginx load-balanced setup." }
+    { "key": "baseUrl", "value": "http://localhost:3338/api/v1", "description": "Direct single-instance dev server — check api/.env's PORT, it changes. Switch to http://localhost:8080/api/v1 when running the full docker-compose + nginx load-balanced setup." }
   ],
   "item": [
     {
@@ -27,7 +27,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"email\": \"alex@example.com\",\n  \"password\": \"testpass123\"\n}" },
             "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
-            "description": "Sets the accessToken cookie. On this user's very first login only, the response body also includes a one-time `adminPin` — save it, it cannot be retrieved again."
+            "description": "Sets the accessToken cookie. The response body's `user.role` is either \"ADMIN\" or \"EMPLOYEE\". There is exactly one fixed admin account, seeded directly in the DB (not via signup): admin@admin.com / Admin@123."
           }
         },
         {
@@ -43,41 +43,6 @@
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
           }
-        },
-        {
-          "name": "Verify Admin PIN",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"pin\": \"1234\"\n}" },
-            "url": { "raw": "{{baseUrl}}/auth/admin/verify-pin", "host": ["{{baseUrl}}"], "path": ["auth", "admin", "verify-pin"] },
-            "description": "Checks the 4-digit PIN against this user's own PIN (issued at their first login). On success sets a 15-minute adminAccess cookie."
-          }
-        },
-        {
-          "name": "Verify Admin Password",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"password\": \"testpass123\"\n}" },
-            "url": { "raw": "{{baseUrl}}/auth/admin/verify-password", "host": ["{{baseUrl}}"], "path": ["auth", "admin", "verify-password"] },
-            "description": "Alternative unlock path using the account password instead of the PIN."
-          }
-        },
-        {
-          "name": "Admin Status",
-          "request": {
-            "method": "GET",
-            "url": { "raw": "{{baseUrl}}/auth/admin/status", "host": ["{{baseUrl}}"], "path": ["auth", "admin", "status"] }
-          }
-        },
-        {
-          "name": "Lock Admin",
-          "request": {
-            "method": "POST",
-            "url": { "raw": "{{baseUrl}}/auth/admin/lock", "host": ["{{baseUrl}}"], "path": ["auth", "admin", "lock"] },
-            "description": "Clears the adminAccess cookie, re-locking the admin panel without logging the user out."
-          }
         }
       ]
     },
@@ -85,11 +50,28 @@
       "name": "Users",
       "item": [
         {
-          "name": "List registered users (admin only)",
+          "name": "List registered users",
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] },
-            "description": "Requires an unlocked admin panel (Verify Admin PIN/Password first) — feeds the recipient picker."
+            "description": "Any logged-in user can list the roster — it feeds the recipient picker on both /notify (employees) and /admin (the admin)."
+          }
+        },
+        {
+          "name": "Get my notification preferences",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users/me/preferences", "host": ["{{baseUrl}}"], "path": ["users", "me", "preferences"] }
+          }
+        },
+        {
+          "name": "Update my notification preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"taskUpdates\": false\n}" },
+            "url": { "raw": "{{baseUrl}}/users/me/preferences", "host": ["{{baseUrl}}"], "path": ["users", "me", "preferences"] },
+            "description": "systemSecurity is always forced back to true server-side, even if included in the body."
           }
         }
       ]
@@ -146,13 +128,23 @@
           }
         },
         {
-          "name": "Admin Send (to any user)",
+          "name": "Send (to any user)",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"targetUserId\": \"<another-user-id>\",\n  \"type\": \"mention\",\n  \"payload\": { \"message\": \"Hello from the admin panel\" }\n}" },
-            "url": { "raw": "{{baseUrl}}/notifications/admin/send", "host": ["{{baseUrl}}"], "path": ["notifications", "admin", "send"] },
-            "description": "Requires an unlocked admin panel. Sends a notification to any registered user, not just the caller."
+            "body": { "mode": "raw", "raw": "{\n  \"targetUserId\": \"<another-user-id>\",\n  \"type\": \"task\",\n  \"payload\": { \"message\": \"Please review the Q4 numbers\", \"category\": \"assigned\" }\n}" },
+            "url": { "raw": "{{baseUrl}}/notifications/send", "host": ["{{baseUrl}}"], "path": ["notifications", "send"] },
+            "description": "Any registered user can send to any other registered user. `type` can be mention/task/leave/meeting/resignation. The company-wide types (announcement/system/warning/termination) are rejected with 403 unless the caller's role is ADMIN — even when targeted at a single person, e.g. a warning or termination letter."
+          }
+        },
+        {
+          "name": "Broadcast (admin only)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"type\": \"announcement\",\n  \"payload\": { \"title\": \"Office closed Friday\", \"message\": \"The office will be closed for the holiday.\" }\n}" },
+            "url": { "raw": "{{baseUrl}}/notifications/broadcast", "host": ["{{baseUrl}}"], "path": ["notifications", "broadcast"] },
+            "description": "Sends to every registered user at once. Requires the caller's role to be ADMIN — returns 403 for anyone else."
           }
         },
         {

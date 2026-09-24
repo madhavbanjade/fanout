@@ -10,16 +10,20 @@ export type APIResponse<T = unknown> =
       error: string;
     };
 
+export type UserRole = "ADMIN" | "EMPLOYEE";
+
 export interface AuthUser {
   id: string;
   email: string;
   name: string;
+  role: UserRole;
 }
 
 export interface RegisteredUser {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
   createdAt: string;
 }
 
@@ -79,12 +83,11 @@ export interface InboxNotification {
 
 export interface NotificationPreferences {
   mentions: boolean;
-  comments: boolean;
-  newFollowers: boolean;
-  orderShipped: boolean;
-  orderDelivered: boolean;
-  orderDelayed: boolean;
+  taskAssigned: boolean;
+  taskUpdates: boolean;
+  leaveUpdates: boolean;
+  meetingUpdates: boolean;
+  announcements: boolean;
   systemSecurity: boolean;
-  systemUpdates: boolean;
   quietHoursEnabled: boolean;
 }

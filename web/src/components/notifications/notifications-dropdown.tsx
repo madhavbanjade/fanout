@@ -9,9 +9,10 @@ import NotificationAvatar from "./notification-avatar";
 
 const TABS = [
   { key: "all", label: "All" },
-  { key: "mention", label: "Mentions" },
-  { key: "order", label: "Orders" },
   { key: "task", label: "Tasks" },
+  { key: "meeting", label: "Meetings" },
+  { key: "leave", label: "Leave" },
+  { key: "mention", label: "Mentions" },
 ];
 
 export default function NotificationsDropdown({ unreadCount }: { unreadCount: number }) {

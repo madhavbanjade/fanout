@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { IsObject, IsString } from 'class-validator';
 
-export class AdminBroadcastNotificationDto {
+export class BroadcastNotificationDto {
   @IsString()
   type!: string;
 

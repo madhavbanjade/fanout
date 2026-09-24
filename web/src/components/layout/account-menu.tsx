@@ -42,14 +42,6 @@ export default function AccountMenu({ user, onNavigate }: { user: AuthUser; onNa
         >
           Settings
         </Link>
-        <Link
-          href="/admin"
-          onClick={onNavigate}
-          className="block px-4 py-2 hover:opacity-80"
-          style={{ fontSize: "var(--text-sm)", color: "var(--color-text-primary)" }}
-        >
-          Admin panel
-        </Link>
       </div>
       <div className="py-1" style={{ borderTop: "1px solid var(--color-border)" }}>
         <button

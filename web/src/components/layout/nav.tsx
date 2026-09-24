@@ -12,8 +12,8 @@ import AccountMenu from "./account-menu";
 
 const links = [
   { href: "/", label: "Dashboard" },
+  { href: "/notify", label: "Notify" },
   { href: "/settings", label: "Settings" },
-  { href: "/admin", label: "Create Notifications" },
 ];
 
 function initialsOf(name: string) {

@@ -10,6 +10,7 @@ interface AuthUser {
   id: string;
   email: string;
   name: string;
+  role: "ADMIN" | "EMPLOYEE";
 }
 
 interface LoginFormData {
@@ -22,9 +23,9 @@ interface SignupFormData extends LoginFormData {
 }
 
 const notificationItems = [
-  { initials: "SC", color: "blue", title: 'Sara Chen mentioned you in "Q4 checklist"', meta: "Just now · Mention" },
-  { initials: "MW", color: "green", title: "Order #8821 has been delivered to Marcus Webb", meta: "14 min ago · Order" },
-  { initials: "PK", color: "orange", title: 'Task "Finalize API docs" was assigned to you', meta: "1 hr ago · Task" },
+  { initials: "SC", color: "blue", title: 'Sara Chen assigned you a task: "Finalize Q4 budget"', meta: "Just now · Task" },
+  { initials: "MW", color: "green", title: "Your leave request for Oct 3–5 was approved", meta: "14 min ago · Leave" },
+  { initials: "PK", color: "orange", title: "Team standup moved to 10:30 AM tomorrow", meta: "1 hr ago · Meeting" },
 ] as const;
 
 export default function AuthLayout() {
@@ -34,7 +35,6 @@ export default function AuthLayout() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [issuedAdminPin, setIssuedAdminPin] = useState<string | null>(null);
   const isSignup = mode === "signup";
 
   function switchMode(nextMode: AuthMode) {
@@ -75,7 +75,7 @@ export default function AuthLayout() {
       return;
     }
 
-    const response = await fetchAPI<{ user: AuthUser; adminPin?: string }, LoginFormData>({
+    const response = await fetchAPI<{ user: AuthUser }, LoginFormData>({
       endPoint: "auth/login",
       method: "POST",
       data: { email, password },
@@ -88,52 +88,7 @@ export default function AuthLayout() {
     }
 
     form.reset();
-
-    // adminPin is only ever sent once — the very first time this user logs
-    // in — since the server keeps only its hash afterwards.
-    if (response.data.adminPin) {
-      setIssuedAdminPin(response.data.adminPin);
-      return;
-    }
-
     router.push("/");
-  }
-
-  if (issuedAdminPin) {
-    return (
-      <main className="flex min-h-screen items-center justify-center px-4" style={{ background: "var(--color-page-bg)" }}>
-        <div className="card w-full max-w-sm p-8 text-center">
-          <span
-            className="mx-auto grid h-14 w-14 place-items-center rounded-2xl"
-            style={{ background: "var(--color-primary-18)" }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="5" y="11" width="14" height="9" rx="2" stroke="var(--color-primary)" strokeWidth="1.8" />
-              <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="var(--color-primary)" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </span>
-          <h2
-            className="mt-4"
-            style={{ fontSize: "var(--text-2xl)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)" }}
-          >
-            Your admin PIN
-          </h2>
-          <p className="text-muted mt-2">
-            This unlocks your personal admin panel, where you can send notifications to any registered user. It
-            won&apos;t be shown again — save it now.
-          </p>
-          <p
-            className="mono-data mt-6"
-            style={{ fontSize: "var(--text-4xl)", letterSpacing: "0.3em", color: "var(--color-text-primary)" }}
-          >
-            {issuedAdminPin}
-          </p>
-          <button type="button" className="btn-primary mt-6 w-full" onClick={() => router.push("/")}>
-            Continue to dashboard
-          </button>
-        </div>
-      </main>
-    );
   }
 
   return (

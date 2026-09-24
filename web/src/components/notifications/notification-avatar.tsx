@@ -1,8 +1,13 @@
 const TYPE_COLOR: Record<string, string> = {
   mention: "var(--color-notif-mention)",
-  order: "var(--color-notif-order)",
   task: "var(--color-notif-task)",
+  leave: "var(--color-success)",
+  meeting: "var(--color-primary)",
+  announcement: "var(--color-notif-system)",
   system: "var(--color-notif-system)",
+  warning: "var(--color-warning)",
+  termination: "var(--color-danger)",
+  resignation: "var(--color-text-muted)",
 };
 
 function Glyph({ type }: { type: string }) {
@@ -15,16 +20,23 @@ function Glyph({ type }: { type: string }) {
           <path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-4 7.5" stroke={stroke} strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       );
-    case "order":
-      return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 3 4 7.5v9L12 21l8-4.5v-9L12 3Z" stroke={stroke} strokeWidth="1.8" strokeLinejoin="round" />
-        </svg>
-      );
     case "task":
       return (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M5 13l4 4L19 7" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "warning":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 4 3 20h18L12 4Z" stroke={stroke} strokeWidth="1.8" strokeLinejoin="round" />
+          <path d="M12 10v4M12 17v.01" stroke={stroke} strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "termination":
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7 7l10 10M17 7 7 17" stroke={stroke} strokeWidth="2" strokeLinecap="round" />
         </svg>
       );
     default:

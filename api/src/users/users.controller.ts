@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { AdminUnlockGuard } from '../common/guards/admin-unlock.guard';
 import type { AuthRequest } from '../common/types/auth-request.type';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 import { UsersService } from './users.service';
@@ -9,10 +8,10 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly users: UsersService) {}
 
-  // Feeds the admin panel's recipient picker — an unlocked admin can message
-  // any registered user, so the full roster is returned here.
+  // Feeds the "send notification" recipient picker — any registered user can
+  // message any other registered user, so the full roster is returned here.
   @Get()
-  @UseGuards(JwtAuthGuard, AdminUnlockGuard)
+  @UseGuards(JwtAuthGuard)
   list() {
     return this.users.listAll();
   }

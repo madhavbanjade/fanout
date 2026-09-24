@@ -3,7 +3,6 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { randomInt } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PasswordService } from '../common/services/password.service';
@@ -15,6 +14,7 @@ const publicUser = {
   id: true,
   email: true,
   name: true,
+  role: true,
 } as const;
 
 @Injectable()
@@ -63,20 +63,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Each user gets their own admin PIN, generated once on their first login
-    // and returned in the clear exactly this one time — it can't be recovered
-    // afterwards since only its hash is kept, so the client must show it now.
-    let issuedAdminPin: string | undefined;
-    if (!user.adminPinHash) {
-      issuedAdminPin = randomInt(0, 10000).toString().padStart(4, '0');
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { adminPinHash: await this.passwords.hash(issuedAdminPin) },
-      });
-    }
-
-    const { accessToken, user: publicUserData } = await this.response(user);
-    return { accessToken, user: publicUserData, adminPin: issuedAdminPin };
+    return this.response(user);
   }
 
   async me(id: string) {
@@ -88,30 +75,15 @@ export class AuthService {
     return user;
   }
 
-  async verifyAdminPin(userId: string, pin: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException('User no longer exists');
-    if (!user.adminPinHash || !(await this.passwords.compare(pin, user.adminPinHash))) {
-      throw new UnauthorizedException('Incorrect PIN');
-    }
-  }
-
-  async verifyAdminPassword(userId: string, password: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException('User no longer exists');
-    if (!(await this.passwords.compare(password, user.passwordHash))) {
-      throw new UnauthorizedException('Incorrect password');
-    }
-  }
-
-  private async response(user: { id: string; email: string; name: string }) {
+  private async response(user: { id: string; email: string; name: string; role: string }) {
     const accessToken = await this.jwt.signAsync({
       sub: user.id,
       email: user.email,
+      role: user.role,
     });
     return {
       accessToken,
-      user: { id: user.id, email: user.email, name: user.name },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
     };
   }
 }

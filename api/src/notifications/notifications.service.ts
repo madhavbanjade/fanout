@@ -44,32 +44,36 @@ function extractCategory(payload: unknown): string | undefined {
 
 type Preferences = {
   mentions: boolean;
-  comments: boolean;
-  newFollowers: boolean;
-  orderShipped: boolean;
-  orderDelivered: boolean;
-  orderDelayed: boolean;
+  taskAssigned: boolean;
+  taskUpdates: boolean;
+  leaveUpdates: boolean;
+  meetingUpdates: boolean;
+  announcements: boolean;
   systemSecurity: boolean;
-  systemUpdates: boolean;
 };
 
 // Security alerts are required and always pass — see UsersService.updatePreferences,
-// which won't let systemSecurity be turned off in the first place either.
+// which won't let systemSecurity be turned off in the first place either. Warning,
+// termination and resignation notices are likewise never gated — critical HR
+// notices always reach their recipient regardless of preferences.
 function isAllowedByPreferences(preferences: Preferences, type: string, category?: string): boolean {
   switch (type) {
     case 'mention':
       return preferences.mentions;
-    case 'order':
-      if (category === 'shipped') return preferences.orderShipped;
-      if (category === 'delivered') return preferences.orderDelivered;
-      if (category === 'delayed') return preferences.orderDelayed;
-      return true;
+    case 'task':
+      if (category === 'assigned') return preferences.taskAssigned;
+      return preferences.taskUpdates;
+    case 'leave':
+      return preferences.leaveUpdates;
+    case 'meeting':
+      return preferences.meetingUpdates;
+    case 'announcement':
+      return preferences.announcements;
     case 'system':
-      if (category === 'updates') return preferences.systemUpdates;
       return true;
     default:
-      // Types with no matching preference (e.g. "task", the demo test button)
-      // aren't gated — there's nothing for the user to have opted out of.
+      // warning, termination, resignation, and the demo test button aren't
+      // gated — there's nothing for the user to have opted out of.
       return true;
   }
 }

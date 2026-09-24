@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { IsObject, IsString, IsUUID } from 'class-validator';
 
-export class AdminSendNotificationDto {
+export class SendNotificationDto {
   @IsUUID()
   targetUserId!: string;
 

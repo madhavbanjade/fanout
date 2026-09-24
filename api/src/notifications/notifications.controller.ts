@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -14,12 +15,16 @@ import {
 } from '@nestjs/common';
 import { NotificationsGateway } from '../common/guards/notifications.gateway';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { AdminUnlockGuard } from '../common/guards/admin-unlock.guard';
+import { AdminRoleGuard } from '../common/guards/admin-role.guard';
 import type { AuthRequest } from '../common/types/auth-request.type';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { AdminSendNotificationDto } from './dto/admin-send-notification.dto';
-import { AdminBroadcastNotificationDto } from './dto/admin-broadcast-notification.dto';
+import { SendNotificationDto } from './dto/send-notification.dto';
+import { BroadcastNotificationDto } from './dto/broadcast-notification.dto';
 import { NotificationsService } from './notifications.service';
+
+// Company-wide types: only the admin (the one designated "top man" account)
+// can send these, whether to a single person or the whole company.
+const ADMIN_ONLY_TYPES = new Set(['announcement', 'system', 'warning', 'termination']);
 
 @Controller('notifications')
 export class NotificationsController {
@@ -105,15 +110,15 @@ export class NotificationsController {
     return this.notifications.markRead(request.user.sub, notificationId);
   }
 
-  @Post('admin/send')
-  @UseGuards(JwtAuthGuard, AdminUnlockGuard)
-  async adminSend(@Req() request: AuthRequest, @Body() dto: AdminSendNotificationDto) {
-    // System alerts are broadcast-only — they're meant for everyone, so a
-    // real send of this type is redirected to a full broadcast. "Send test
-    // to myself" (targetUserId === the caller) is exempt, so testing a
-    // system alert doesn't spam every real user.
-    if (dto.type === 'system' && dto.targetUserId !== request.user.sub) {
-      return this.broadcast(request.user.sub, { type: dto.type, payload: dto.payload });
+  // Any registered user can send a notification to any other registered
+  // user — but the company-wide types (announcement/system/warning/
+  // termination) are reserved for the admin account, even when targeted at
+  // a single person (e.g. a warning or termination letter to one employee).
+  @Post('send')
+  @UseGuards(JwtAuthGuard)
+  async send(@Req() request: AuthRequest, @Body() dto: SendNotificationDto) {
+    if (ADMIN_ONLY_TYPES.has(dto.type) && request.user.role !== 'ADMIN') {
+      throw new ForbiddenException('Only the admin can send this notification type');
     }
 
     const notification = await this.notifications.createNotification(
@@ -129,13 +134,14 @@ export class NotificationsController {
     return notification;
   }
 
-  @Post('admin/broadcast')
-  @UseGuards(JwtAuthGuard, AdminUnlockGuard)
-  adminBroadcast(@Req() request: AuthRequest, @Body() dto: AdminBroadcastNotificationDto) {
-    return this.broadcast(request.user.sub, dto);
+  // Broadcasting to every registered user is admin-only.
+  @Post('broadcast')
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
+  broadcast(@Req() request: AuthRequest, @Body() dto: BroadcastNotificationDto) {
+    return this.broadcastAll(request.user.sub, dto);
   }
 
-  private async broadcast(senderId: string, dto: CreateNotificationDto) {
+  private async broadcastAll(senderId: string, dto: CreateNotificationDto) {
     const userIds = await this.notifications.getAllUserIds();
 
     const notifications = await Promise.all(

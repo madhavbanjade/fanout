@@ -7,31 +7,27 @@ export class UpdatePreferencesDto {
 
   @IsOptional()
   @IsBoolean()
-  comments?: boolean;
+  taskAssigned?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  newFollowers?: boolean;
+  taskUpdates?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  orderShipped?: boolean;
+  leaveUpdates?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  orderDelivered?: boolean;
+  meetingUpdates?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  orderDelayed?: boolean;
+  announcements?: boolean;
 
   @IsOptional()
   @IsBoolean()
   systemSecurity?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  systemUpdates?: boolean;
 
   @IsOptional()
   @IsBoolean()
