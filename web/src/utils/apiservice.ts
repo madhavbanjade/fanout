@@ -1,7 +1,7 @@
 import { APIResponse } from "../types";
 
 const API_BASE =
- process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3334/api/v1";
+ process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
 //Defines the options you can pass to the fetchAPI.
 interface FetchAPIOptions<T = unknown> {

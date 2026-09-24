@@ -57,6 +57,38 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Run two API instances behind Nginx
+
+The project root contains `nginx/nginx.conf`, which listens on port `8080` and
+balances requests between API instances on ports `3000` and `3002`. Start Redis
+first because both instances use the Redis Socket.IO adapter:
+
+```bash
+docker compose up -d redis
+```
+
+From the `api` directory, start the two instances in separate terminals with
+the same environment configuration (including `REDIS_URL`):
+
+```bash
+# Terminal 1
+npm run start:dev
+
+# Terminal 2 (PowerShell)
+$env:PORT=3002; npm run start:dev
+```
+
+Run Nginx with the repository config (`nginx -c <absolute-path-to-repo>/nginx/nginx.conf`),
+then point the frontend at `http://localhost:8080`. The frontend defaults use
+this Nginx address for API and Socket.IO traffic; `NEXT_PUBLIC_API_URL` and
+`NEXT_PUBLIC_SOCKET_URL` can override those values.
+
+The Next.js dev server also defaults to port `3000`; run it on `3001` while this
+API setup is active (for example, `npm run dev -- --port 3001` from `web`).
+
+`ip_hash` keeps Socket.IO polling requests on one API instance. The Redis
+adapter distributes Socket.IO events across both instances.
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
