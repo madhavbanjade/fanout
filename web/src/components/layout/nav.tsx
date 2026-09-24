@@ -13,7 +13,7 @@ import AccountMenu from "./account-menu";
 const links = [
   { href: "/", label: "Dashboard" },
   { href: "/settings", label: "Settings" },
-  { href: "/admin", label: "Admin" },
+  { href: "/admin", label: "Create Notifications" },
 ];
 
 function initialsOf(name: string) {
@@ -63,7 +63,7 @@ export default function Nav({ user }: { user: AuthUser }) {
             </svg>
           </span>
           <span style={{ fontSize: "var(--text-base)", fontWeight: "var(--weight-semibold)" }} className="text-white">
-            Notifyr
+            Fonto
           </span>
         </Link>
 
