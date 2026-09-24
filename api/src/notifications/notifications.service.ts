@@ -11,6 +11,15 @@ export class NotificationsService {
   ) {}
 
   async createNotification(userId: string, data: CreateNotificationDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
     const notification = await this.prisma.notification.create({
       data: {
         userId,
@@ -22,6 +31,27 @@ export class NotificationsService {
     await this.notificationQueueService.enqueue(notification.id);
 
     return notification;
+  }
+
+  async createDeadLetterTestNotification() {
+    const userId = 'test-fail-user';
+
+    // The worker deliberately fails delivery for this ID to exercise BullMQ retries.
+    await this.prisma.user.upsert({
+      where: { id: userId },
+      create: {
+        id: userId,
+        email: 'test-fail-user@notify.local',
+        name: 'Dead Letter Test User',
+        passwordHash: '!test-account-no-login!',
+      },
+      update: {},
+    });
+
+    return this.createNotification(userId, {
+      type: 'mention',
+      payload: { message: 'testing dead letter' },
+    });
   }
 
   async getNotification(userId: string, notificationId: string) {

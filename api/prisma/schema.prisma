@@ -31,5 +31,24 @@ model Notification {
  status String @default("PENDING")
  readAt DateTime?
  createdAt DateTime @default(now())
+ deliveryAttempts DeliveryAttempt[]
 @@index([userId, readAt])
+}
+
+
+model DeliveryAttempt {
+ id String @id @default(uuid())
+ notificationId String
+ notification Notification @relation(fields: [notificationId], references: [id])
+ attemptNumber Int
+ channel String @default("websocket")
+ succeeded Boolean
+ error String?
+ createdAt DateTime @default(now())
+}
+enum NotificationStatus {
+ PENDING
+ DELIVERED
+ FAILED
+ DEAD_LETTER
 }

@@ -39,15 +39,10 @@ export class NotificationsController {
     return this.notifications.getNotification(request.user.sub, notificationId);
   }
 
-  
-  @Post('test-notify/:userId')
-  testNotify(@Param('userId') userId: string) {
-    this.notificationsGateway.sendToUser(userId, {
-      id: 'test-1',
-      type: 'mention',
-      message: 'This is a live test notification',
-      createdAt: new Date(),
-    });
-    return { sent: true };
+
+  @Post('test-dead-letter')
+  testDeadLetter() {
+    return this.notifications.createDeadLetterTestNotification();
   }
+
 }
