@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { fetchAPI } from "@/src/utils/apiservice";
 
@@ -99,7 +100,10 @@ export default function AuthLayout() {
   return (
     <main className="auth-shell">
       <section className="auth-showcase" aria-label="Notifyr product overview">
-        <div className="auth-brand"><span className="auth-brand-icon" aria-hidden="true">♧</span>Fanout</div>
+        <div className="auth-brand">
+          <Image src="/logo-mark.png" alt="" width={32} height={32} priority />
+          Fanout
+        </div>
         <div className="auth-showcase-content">
           <h1>Every notification,<br /><span>delivered reliably.</span></h1>
           <p>One API for in-app, push, and email. Built for teams that can&apos;t afford to miss.</p>

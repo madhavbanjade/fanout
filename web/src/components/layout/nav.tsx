@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -48,22 +49,9 @@ export default function Nav({ user }: { user: AuthUser }) {
     >
       <div className="flex min-w-0 items-center gap-3 sm:gap-8">
         <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span
-            className="grid h-8 w-8 place-items-center rounded-lg text-white"
-            style={{ background: "var(--color-primary)" }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M12 4a5 5 0 0 0-5 5v3.2c0 .6-.24 1.17-.66 1.6L5 15h14l-1.34-1.2a2.3 2.3 0 0 1-.66-1.6V9a5 5 0 0 0-5-5Z"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </span>
+          <Image src="/logo-mark.png" alt="" width={28} height={28} priority />
           <span style={{ fontSize: "var(--text-base)", fontWeight: "var(--weight-semibold)" }} className="text-white">
-            Fonto
+            Fanout
           </span>
         </Link>
 
