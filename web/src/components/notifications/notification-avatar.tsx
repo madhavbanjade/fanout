@@ -1,4 +1,4 @@
-const TYPE_COLOR: Record<string, string> = {
+export const TYPE_COLOR: Record<string, string> = {
   mention: "var(--color-notif-mention)",
   task: "var(--color-notif-task)",
   leave: "var(--color-success)",

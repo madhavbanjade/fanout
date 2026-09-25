@@ -243,14 +243,26 @@ export class NotificationsService {
 
     const notifications = await this.prisma.notification.findMany({
       where: { senderId: userId, createdAt: { gte: rangeStart } },
-      select: { createdAt: true, status: true },
+      select: {
+        createdAt: true,
+        status: true,
+        deliveryAttempts: {
+          where: { succeeded: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { createdAt: true },
+        },
+      },
     });
 
-    const buckets = new Map<string, { date: string; sent: number; delivered: number }>();
+    const buckets = new Map<
+      string,
+      { date: string; sent: number; delivered: number; failed: number; latencyTotalMs: number; latencyCount: number }
+    >();
     for (let i = 0; i < days; i += 1) {
       const day = new Date(rangeStart.getTime() + i * DAY_MS);
       const key = dateKey(day);
-      buckets.set(key, { date: key, sent: 0, delivered: 0 });
+      buckets.set(key, { date: key, sent: 0, delivered: 0, failed: 0, latencyTotalMs: 0, latencyCount: 0 });
     }
 
     for (const notification of notifications) {
@@ -258,16 +270,34 @@ export class NotificationsService {
       if (!bucket) continue;
       bucket.sent += 1;
       if (notification.status === 'DELIVERED') bucket.delivered += 1;
+      if (notification.status === 'FAILED' || notification.status === 'DEAD_LETTER') bucket.failed += 1;
+
+      const successfulAttempt = notification.deliveryAttempts[0];
+      if (successfulAttempt) {
+        bucket.latencyTotalMs += successfulAttempt.createdAt.getTime() - notification.createdAt.getTime();
+        bucket.latencyCount += 1;
+      }
     }
 
-    return Array.from(buckets.values());
+    return Array.from(buckets.values()).map(({ latencyTotalMs, latencyCount, ...bucket }) => ({
+      ...bucket,
+      avgLatencyMs: latencyCount === 0 ? 0 : Math.round(latencyTotalMs / latencyCount),
+    }));
   }
 
   // A personal activity feed: things this user sent, and things delivered to
-  // them, in one combined list. The dashboard stat cards stay sent-only —
-  // this is a separate, broader view.
-  async getRecent(userId: string, page: number, pageSize: number) {
-    const where = { OR: [{ senderId: userId }, { userId }] };
+  // them, in one combined list (or filtered to just one side). The dashboard
+  // stat cards stay sent-only — this is a separate, broader view.
+  async getRecent(userId: string, page: number, pageSize: number, direction?: 'sent' | 'received') {
+    // "Received" excludes self-sent notifications (e.g. "send test to
+    // myself") — those already show up under "Sent", and listing them as
+    // received too would show a row labeled "sent" inside the received tab.
+    const where =
+      direction === 'sent'
+        ? { senderId: userId }
+        : direction === 'received'
+          ? { userId, senderId: { not: userId } }
+          : { OR: [{ senderId: userId }, { userId }] };
 
     const [notifications, total] = await Promise.all([
       this.prisma.notification.findMany({

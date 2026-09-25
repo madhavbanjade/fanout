@@ -19,6 +19,9 @@ model User {
  email String @unique
  name String
  passwordHash String
+ pinHash String?
+ bio String?
+ timezone String?
  role String @default("EMPLOYEE")
  createdAt DateTime @default(now())
  notifications Notification[] @relation("ReceivedNotifications")

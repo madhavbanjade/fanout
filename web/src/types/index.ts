@@ -48,6 +48,8 @@ export interface VolumePoint {
   date: string;
   sent: number;
   delivered: number;
+  failed: number;
+  avgLatencyMs: number;
 }
 
 export type NotificationStatus = "PENDING" | "DELIVERED" | "FAILED" | "DEAD_LETTER";
@@ -90,4 +92,16 @@ export interface NotificationPreferences {
   announcements: boolean;
   systemSecurity: boolean;
   quietHoursEnabled: boolean;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  bio: string | null;
+  timezone: string | null;
+  role: UserRole;
+  createdAt: string;
+  pinSet: boolean;
+  sentCount: number;
 }

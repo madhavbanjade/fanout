@@ -76,8 +76,10 @@ export class NotificationsController {
     @Req() request: AuthRequest,
     @Query('page', new ParseIntPipe({ optional: true })) page = 1,
     @Query('pageSize', new ParseIntPipe({ optional: true })) pageSize = 10,
+    @Query('direction') direction?: string,
   ) {
-    return this.notifications.getRecent(request.user.sub, page, pageSize);
+    const normalizedDirection = direction === 'sent' || direction === 'received' ? direction : undefined;
+    return this.notifications.getRecent(request.user.sub, page, pageSize, normalizedDirection);
   }
 
   @Get('unread-count')

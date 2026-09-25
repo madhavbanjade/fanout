@@ -88,6 +88,11 @@ export default function AuthLayout() {
     }
 
     form.reset();
+    // The root layout fetched auth/me server-side before this login request
+    // set the accessToken cookie, so its cached render still has user: null.
+    // router.refresh() invalidates that cache so the nav shows immediately
+    // instead of only after a manual reload.
+    router.refresh();
     router.push("/");
   }
 

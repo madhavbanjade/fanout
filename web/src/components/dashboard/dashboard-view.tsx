@@ -4,13 +4,68 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAPI } from "@/src/utils/apiservice";
 import { capitalize, formatDeltaMs, formatDeltaPct, greetingForHour, timeAgo } from "@/src/utils/format";
-import type { AuthUser, DashboardStats, PaginatedRecent, VolumePoint } from "@/src/types";
+import type { AuthUser, DashboardStats, NotificationStatus, PaginatedRecent, VolumePoint } from "@/src/types";
+import { TYPE_COLOR } from "@/src/components/notifications/notification-avatar";
 import StatCard from "./stat-card";
-import StatusBadge from "./status-badge";
 import VolumeChart from "./volume-chart";
-import { BoltIcon, CheckIcon, TrendUpIcon, XIcon } from "./icons";
+import { ArrowDownLeftIcon, ArrowUpRightIcon, BoltIcon, CheckIcon, TrendUpIcon, XIcon } from "./icons";
 
 const RECENT_PAGE_SIZE = 10;
+const EMPTY_RECENT: PaginatedRecent = { items: [], total: 0, page: 1, pageSize: RECENT_PAGE_SIZE };
+
+const RECENT_TABS = [
+  { key: "all", label: "All" },
+  { key: "sent", label: "Sent" },
+  { key: "received", label: "Received" },
+] as const;
+
+type RecentFilter = (typeof RECENT_TABS)[number]["key"];
+
+// Delivery status is worker-internal (PENDING/DELIVERED/FAILED/DEAD_LETTER) —
+// translate it into what the label should say to the human looking at THIS
+// row: something you sent reads "Sent", something delivered to you reads
+// "Received", failures/pending stay as-is regardless of direction.
+function deriveDeliveryStatus(status: NotificationStatus, direction: "sent" | "received") {
+  if (status === "PENDING") return { label: "Pending", className: "status-pending" };
+  if (status === "FAILED" || status === "DEAD_LETTER") return { label: "Failed", className: "status-failed" };
+  return { label: direction === "sent" ? "Sent" : "Received", className: "status-delivered" };
+}
+
+function DeliveryStatusBadge({ status, direction }: { status: NotificationStatus; direction: "sent" | "received" }) {
+  const { label, className } = deriveDeliveryStatus(status, direction);
+  return (
+    <span className={`status-badge ${className}`}>
+      <span aria-hidden="true">●</span>
+      {label}
+    </span>
+  );
+}
+
+function DirectionBadge({ direction }: { direction: "sent" | "received" }) {
+  const isSent = direction === "sent";
+  return (
+    <span
+      className="grid h-6 w-6 shrink-0 place-items-center rounded-full"
+      style={{
+        background: isSent ? "var(--color-primary-18)" : "rgba(155, 89, 182, 0.14)",
+        color: isSent ? "var(--color-primary)" : "var(--color-section-quiet)",
+      }}
+      title={isSent ? "Sent by you" : "Received by you"}
+    >
+      {isSent ? <ArrowUpRightIcon /> : <ArrowDownLeftIcon />}
+    </span>
+  );
+}
+
+function TypePill({ type }: { type: string }) {
+  const color = TYPE_COLOR[type] ?? "var(--color-text-muted)";
+  return (
+    <span className="inline-flex items-center gap-1.5" style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--color-text-primary)" }}>
+      <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+      {capitalize(type)}
+    </span>
+  );
+}
 
 interface Props {
   user: AuthUser;
@@ -53,13 +108,23 @@ export default function DashboardView({ user, initialStats, initialVolume, initi
   });
 
   const [recentPage, setRecentPage] = useState(1);
+  const [recentFilter, setRecentFilter] = useState<RecentFilter>("all");
 
-  const { data: recent } = useQuery({
-    queryKey: ["dashboard", "recent", recentPage],
-    queryFn: () => requireData<PaginatedRecent>(`notifications/recent?page=${recentPage}&pageSize=${RECENT_PAGE_SIZE}`),
-    initialData: initialRecent,
+  const { data: recentData } = useQuery({
+    queryKey: ["dashboard", "recent", recentPage, recentFilter],
+    queryFn: () =>
+      requireData<PaginatedRecent>(
+        `notifications/recent?page=${recentPage}&pageSize=${RECENT_PAGE_SIZE}${recentFilter === "all" ? "" : `&direction=${recentFilter}`}`,
+      ),
+    initialData: recentPage === 1 && recentFilter === "all" ? initialRecent : undefined,
     refetchInterval: 5000,
   });
+  const recent = recentData ?? EMPTY_RECENT;
+
+  function handleFilterChange(next: RecentFilter) {
+    setRecentFilter(next);
+    setRecentPage(1);
+  }
 
   const totalPages = Math.max(1, Math.ceil(recent.total / recent.pageSize));
 
@@ -153,9 +218,11 @@ export default function DashboardView({ user, initialStats, initialVolume, initi
             </h2>
             <p className="text-muted">Last 7 days</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <Legend color="var(--color-primary)" label="Sent" />
             <Legend color="var(--color-success)" label="Delivered" />
+            <Legend color="var(--color-danger)" label="Failed" />
+            <Legend color="var(--color-warning)" label="Avg latency" />
           </div>
         </div>
         <div className="mt-4">
@@ -164,13 +231,37 @@ export default function DashboardView({ user, initialStats, initialVolume, initi
       </section>
 
       <section className="card mt-6 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4">
-          <h2 style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)" }}>
-            Recent deliveries
-          </h2>
-          <span className="text-muted" style={{ fontSize: "var(--text-xs)" }}>
-            {recent.total} total
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <div>
+            <h2 style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-primary)" }}>
+              Recent activity
+            </h2>
+            <p className="text-muted mt-0.5">Everything you&apos;ve sent and received</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1 rounded-lg p-1" style={{ background: "var(--color-muted-bg)" }}>
+              {RECENT_TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => handleFilterChange(tab.key)}
+                  className="rounded-md px-3 py-1 transition-colors"
+                  style={{
+                    fontSize: "var(--text-xs)",
+                    fontWeight: "var(--weight-medium)",
+                    background: recentFilter === tab.key ? "var(--color-card-bg)" : "transparent",
+                    color: recentFilter === tab.key ? "var(--color-text-primary)" : "var(--color-text-muted)",
+                    boxShadow: recentFilter === tab.key ? "var(--shadow-preview)" : "none",
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-muted" style={{ fontSize: "var(--text-xs)" }}>
+              {recent.total} total
+            </span>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full" style={{ borderCollapse: "collapse" }}>
@@ -187,7 +278,9 @@ export default function DashboardView({ user, initialStats, initialVolume, initi
               {recent.items.length === 0 && (
                 <tr>
                   <td colSpan={6} className="text-muted px-5 py-6 text-center">
-                    No notifications yet — send a test notification to see it flow through.
+                    {recentFilter === "all"
+                      ? "No notifications yet — send a test notification to see it flow through."
+                      : `No ${recentFilter} notifications yet.`}
                   </td>
                 </tr>
               )}
@@ -195,25 +288,35 @@ export default function DashboardView({ user, initialStats, initialVolume, initi
                 const from = item.direction === "sent" ? "You" : item.sender;
                 const to = item.direction === "received" ? "You" : item.recipient;
                 return (
-                <tr key={item.id} style={{ borderBottom: "1px solid var(--color-border)" }}>
-                  <td className="px-5 py-3" style={{ fontSize: "var(--text-sm)", color: "var(--color-text-primary)" }}>
-                    {from === to ? from : `${from} → ${to}`}
-                  </td>
-                  <td className="max-w-55 truncate px-5 py-3 text-muted" style={{ fontSize: "var(--text-sm)" }}>
-                    {item.message || "—"}
-                  </td>
-                  <td
-                    className="px-5 py-3"
-                    style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--color-text-primary)" }}
+                  <tr
+                    key={item.id}
+                    className="transition-colors hover:opacity-90"
+                    style={{ borderBottom: "1px solid var(--color-border)" }}
                   >
-                    {capitalize(item.type)}
-                  </td>
-                  <td className="text-muted px-5 py-3">{item.channel}</td>
-                  <td className="px-5 py-3">
-                    <StatusBadge status={item.status} />
-                  </td>
-                  <td className="mono-data px-5 py-3">{timeAgo(item.createdAt)}</td>
-                </tr>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <DirectionBadge direction={item.direction} />
+                        <span style={{ fontSize: "var(--text-sm)", color: "var(--color-text-primary)" }}>
+                          {from === to ? from : `${from} → ${to}`}
+                        </span>
+                      </div>
+                    </td>
+                    <td
+                      className="max-w-xs px-5 py-3 text-muted"
+                      style={{ fontSize: "var(--text-sm)", whiteSpace: "normal", wordBreak: "break-word" }}
+                      title={item.message || undefined}
+                    >
+                      {item.message || "—"}
+                    </td>
+                    <td className="px-5 py-3">
+                      <TypePill type={item.type} />
+                    </td>
+                    <td className="text-muted px-5 py-3">{item.channel}</td>
+                    <td className="px-5 py-3">
+                      <DeliveryStatusBadge status={item.status} direction={item.direction} />
+                    </td>
+                    <td className="mono-data px-5 py-3">{timeAgo(item.createdAt)}</td>
+                  </tr>
                 );
               })}
             </tbody>

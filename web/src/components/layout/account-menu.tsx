@@ -27,7 +27,7 @@ export default function AccountMenu({ user, onNavigate }: { user: AuthUser; onNa
       </div>
       <div className="py-1">
         <Link
-          href="/settings"
+          href="/profile"
           onClick={onNavigate}
           className="block px-4 py-2 hover:opacity-80"
           style={{ fontSize: "var(--text-sm)", color: "var(--color-text-primary)" }}
