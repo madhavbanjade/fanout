@@ -1,7 +1,9 @@
 import { APIResponse } from "../types";
+import { API_BASES, isNetworkError } from "./apiHosts";
 
-const API_BASE =
- process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
+// Remembers which base last worked so we're not retrying a dead instance on
+// every request; still re-checked on failure so we notice when it comes back.
+let activeBaseIndex = 0;
 
 //Defines the options you can pass to the fetchAPI.
 interface FetchAPIOptions<T = unknown> {
@@ -50,12 +52,7 @@ const toFormData = (data: Record<string, unknown>): FormData => {
 export const fetchAPI = async <TResponse = unknown, TData = unknown>({
   endPoint = "", method = "GET", data, id, slug, setError, headers: customHeaders = {},
 }: FetchAPIOptions<TData>): Promise<APIResponse<TResponse>> => {
-    //Combines API_BASE + endpoint + id/slug to form the request URL.
-  const urlParts = [API_BASE, endPoint];
-  if (slug) urlParts.push(slug);
-  else if (id) urlParts.push(String(id));
-  const url = urlParts.join("/");
-  //Checks if data contains files. If yes, it converts to FormData.
+    //Checks if data contains files. If yes, it converts to FormData.
 //If no files, sets Content-Type to application/json.
   const headers: Record<string, string> = { ...customHeaders };
 
@@ -69,53 +66,81 @@ export const fetchAPI = async <TResponse = unknown, TData = unknown>({
     }
   }
 
-  //send fetch request with following fileds
-  try {
-    const response = await fetch(url, {
-      method,
-      headers,
-      credentials: "include", //(sends cookies)
-      body: //(JSON or FormData)
-        method !== "GET" && finalData
-          ? finalData instanceof FormData
-            ? finalData
-            : JSON.stringify(finalData)
-          : undefined,
-      cache: "no-store", //(always fresh data)
-    });
+  const buildUrl = (base: string) => {
+    const urlParts = [base, endPoint];
+    if (slug) urlParts.push(slug);
+    else if (id) urlParts.push(String(id));
+    return urlParts.join("/");
+  };
 
+  //send fetch request, trying the last-known-good base first and falling
+  //back through the rest of API_BASES if it's unreachable (not just erroring)
+  let lastNetworkError: unknown = null;
+  for (let attempt = 0; attempt < API_BASES.length; attempt++) {
+    const baseIndex = (activeBaseIndex + attempt) % API_BASES.length;
+    const url = buildUrl(API_BASES[baseIndex]);
 
-    //handle errors
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorMessage = "Something went wrong.";
+    try {
+      const response = await fetch(url, {
+        method,
+        headers,
+        credentials: "include", //(sends cookies)
+        body: //(JSON or FormData)
+          method !== "GET" && finalData
+            ? finalData instanceof FormData
+              ? finalData
+              : JSON.stringify(finalData)
+            : undefined,
+        cache: "no-store", //(always fresh data)
+      });
 
-      try {
-        const json: unknown = JSON.parse(errorText);
-        const raw = typeof json === "object" && json !== null
-          ? (json as { message?: unknown; error?: unknown }).message ?? (json as { error?: unknown }).error ?? errorText
-          : errorText;
-        errorMessage = Array.isArray(raw) ? raw.join(", ") : String(raw);
-      } catch {
-        errorMessage = errorText || errorMessage;
+      activeBaseIndex = baseIndex;
+
+      //handle errors
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = "Something went wrong.";
+
+        try {
+          const json: unknown = JSON.parse(errorText);
+          const raw = typeof json === "object" && json !== null
+            ? (json as { message?: unknown; error?: unknown }).message ?? (json as { error?: unknown }).error ?? errorText
+            : errorText;
+          errorMessage = Array.isArray(raw) ? raw.join(", ") : String(raw);
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+
+        if (setError) setError(errorMessage);
+        return { success: false, error: errorMessage, data: null };
       }
 
+     // If everything is fine, returns the JSON wrapped in APIResponse
+      const json: TResponse = await response.json();
+      return { success: true, data: json, error: null };
+      //Catch Network Errors
+    } catch (error: unknown) {
+      if (isNetworkError(error) && attempt < API_BASES.length - 1) {
+        lastNetworkError = error;
+        continue; //this instance is down — try the next base
+      }
+
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to connect to the server.";
       if (setError) setError(errorMessage);
       return { success: false, error: errorMessage, data: null };
     }
-
-   // If everything is fine, returns the JSON wrapped in APIResponse
-    const json: TResponse = await response.json();
-    return { success: true, data: json, error: null };
-    //Catch Network Errors
-  } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to connect to the server.";
-    if (setError) setError(errorMessage);
-    return { success: false, error: errorMessage, data: null };
   }
+
+  // Unreachable in practice (loop above always returns), kept for TS narrowing.
+  const errorMessage =
+    lastNetworkError instanceof Error
+      ? lastNetworkError.message
+      : "Failed to connect to the server.";
+  if (setError) setError(errorMessage);
+  return { success: false, error: errorMessage, data: null };
 };
 
 export type {APIResponse}
