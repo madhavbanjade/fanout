@@ -11,7 +11,7 @@ async function bootstrap() {
   await redisIoAdapter.connectToRedis();
 
   app.useWebSocketAdapter(redisIoAdapter);
-
+// hihgwesgwg
   app.use(cookieParser());
   app.enableCors({
     origin: process.env.FRONTEND_URL ?? true,
