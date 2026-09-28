@@ -13,8 +13,11 @@ async function bootstrap() {
   app.useWebSocketAdapter(redisIoAdapter);
 // hihgwesgwg
   app.use(cookieParser());
+  const allowedOrigins = process.env.FRONTEND_URL?.split(',')
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? true,
+    origin: allowedOrigins?.length ? allowedOrigins : true,
     credentials: true,
   });
   app.setGlobalPrefix('api/v1');
