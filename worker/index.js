@@ -79,6 +79,12 @@ const worker = new Worker('notifications', async (job) => {
     throw err; // re-throw so BullMQ still retries
   }
 }, { connection });
+worker.on('ready', () => {
+  console.log("Worker started: listening for jobs on the 'notifications' queue");
+});
+worker.on('error', (err) => {
+  console.error('Worker error:', err.message);
+});
 worker.on('failed', async (job, err) => {
   console.error(`Job ${job?.id} failed (attempt ${job?.attemptsMade}):`, err.message);
 
