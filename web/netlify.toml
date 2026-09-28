@@ -7,3 +7,13 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Proxy the API through this site so the login cookie is set on the web
+# app's own domain (the Next server pages read it, and browsers block
+# cross-site cookies). WebSockets can't be proxied, so the socket connects
+# straight to the API instead.
+[[redirects]]
+  from = "/api/v1/*"
+  to = "https://fanout-58c9.onrender.com/api/v1/:splat"
+  status = 200
+  force = true

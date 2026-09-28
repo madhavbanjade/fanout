@@ -28,7 +28,10 @@ constructor(
 async handleConnection(client: Socket) {
 try {
     //verification
-const token = this.cookies.get(client.handshake);
+const authToken = client.handshake.auth?.token;
+const token =
+  (typeof authToken === 'string' ? authToken : undefined) ??
+  this.cookies.get(client.handshake);
 if (!token) throw new Error('Missing access token');
 const payload = this.jwtService.verify(token);
  client.data.userId = payload.sub;

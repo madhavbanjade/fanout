@@ -1,5 +1,10 @@
 import { cookies } from "next/headers";
-import { API_BASES, isNetworkError } from "./apiHosts";
+import { API_BASES as CLIENT_API_BASES, isNetworkError } from "./apiHosts";
+
+// The browser may reach the API through a same-origin proxy (a relative
+// NEXT_PUBLIC_API_URL like "/api/v1"), which Server Components can't use, so
+// API_URL (server-only) gives them the API's real absolute address.
+const API_BASES = process.env.API_URL ? [process.env.API_URL] : CLIENT_API_BASES;
 
 let activeBaseIndex = 0;
 

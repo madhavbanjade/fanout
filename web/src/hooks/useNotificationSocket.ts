@@ -12,6 +12,19 @@ export type NotificationEvent = {
   status?: string;
 };
 
+// When the API is on another domain the login cookie never reaches it, so the
+// token is fetched from this app's own server and sent in the handshake.
+async function fetchSocketToken(): Promise<string | undefined> {
+  try {
+    const response = await fetch("/api/socket-token", { cache: "no-store" });
+    if (!response.ok) return undefined;
+    const { token } = (await response.json()) as { token?: string | null };
+    return token ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function useNotificationSocket(
   onNotification?: (notification: NotificationEvent) => void,
   enabled = true,
@@ -51,6 +64,10 @@ export function useNotificationSocket(
       const s = io(SOCKET_URLS[urlIndex], {
         withCredentials: true,
         reconnectionAttempts: 3,
+        // Re-fetched on every (re)connect so it never goes stale.
+        auth: (callback) => {
+          void fetchSocketToken().then((token) => callback(token ? { token } : {}));
+        },
       });
       socket = s;
       attach(s);
